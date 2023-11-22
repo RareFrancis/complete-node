@@ -1,0 +1,84 @@
+const express = require('express')
+const router = express.Router()
+const signin =require('../models/signin')
+const {validationResult}=require('express-validator')
+const creaters = require('../models/signin')
+
+router.get('/',async(req,res)=>{
+    try{
+        const a = await creaters.find() //mongodb collection name
+        res.json(a)
+    }
+    catch(err){
+       res.send('Error',err)
+    }
+})
+
+router.post('/',async(req,res)=>{
+    const errors = validationResult(req);
+
+    if(!errors.isEmpty()){
+        return res.status(400).json({errors:errors.array()});
+    }
+
+    const signin = new creaters({  // creators is a mongodb collection name / signin is a model name
+        Email:req.body.Email,
+        Password:req.body.Password,
+        ConfirmPassword:req.body.ConfirmPassword,
+       
+    });
+
+    try{
+        const a1 = await signin.save() //signin is the model name
+        console.log(a1);
+        res.json(a1)
+    }
+    catch(err){
+        res.status(500).json({error:err.message})
+    }
+});
+
+
+router.delete('/:_id',async(req,res)=>{
+    try{
+        const c = await creaters.findByIdAndRemove(req.params._id)  // creators is a mongodb collection name
+        res.json(c)
+    }catch(err){
+        res.send('Error'+err)
+    }
+})
+
+router.get('/:_id',async(req,res)=>{
+    try{
+        const d = await creaters.findById(req.params._id)  // creators is a mongodb collection name
+        res.json(d)
+    }catch(err){
+        res.send('Error'+err)
+    }
+});
+
+router.put('/:_id', async (req,res)=>{
+    try{
+        const e = await creaters.findOneAndUpdate(  // creators is a mongodb collection name
+            {_id: req.params._id},
+            {
+                $set:{
+                   
+                    Password:req.body.Password,
+                    ConfirmPassword:req.body.ConfirmPassword,
+                }
+            },
+            { new:true}
+        );
+        if(!creaters){   // creators is a mongodb collection name
+            return res.status(404).json({error:'Creaters not found'});
+        }
+        res.json(creaters);   // creators is a mongodb collection name
+    }
+    catch(err){
+        res.status(500).json({error:'Error Updating Creaters:'+err});
+    }
+})
+
+
+module.exports = router;
